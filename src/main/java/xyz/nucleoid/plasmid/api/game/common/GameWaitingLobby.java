@@ -23,10 +23,12 @@ import xyz.nucleoid.plasmid.api.game.event.GamePlayerEvents;
 import xyz.nucleoid.plasmid.api.game.event.GameWaitingLobbyEvents;
 import xyz.nucleoid.plasmid.api.game.player.JoinOffer;
 import xyz.nucleoid.plasmid.api.game.player.JoinOfferResult;
+import xyz.nucleoid.plasmid.api.game.player.PlayerSet;
 import xyz.nucleoid.plasmid.api.game.rule.GameRuleType;
 import xyz.nucleoid.plasmid.api.game.common.widget.SidebarWidget;
 import xyz.nucleoid.plasmid.impl.game.common.ui.WaitingLobbyUi;
 import xyz.nucleoid.plasmid.impl.game.common.ui.element.LeaveGameWaitingLobbyUiElement;
+import xyz.nucleoid.plasmid.impl.game.common.ui.element.ReadyGameWaitingLobbyUiElement;
 import xyz.nucleoid.plasmid.impl.game.manager.GameSpaceManagerImpl;
 import xyz.nucleoid.plasmid.impl.compatibility.AfkDisplayCompatibility;
 
@@ -62,6 +64,8 @@ public final class GameWaitingLobby {
     private long countdownStart = -1;
     private long countdownDuration = -1;
 
+    private long timeSincePlayerVote = -1;
+    private final ArrayList<ServerPlayerEntity> playerVotes = new ArrayList<>();
     private boolean startRequested;
     private boolean started;
     private List<Text> sidebarText;
@@ -137,6 +141,10 @@ public final class GameWaitingLobby {
                 this.gameSpace.getServer().getCurrentPlayerCount()
         ), this.playerConfig.minPlayers()) - count;
 
+        if (required > 0) {
+            this.showVoteReminder();
+        }
+
         return Text.empty()
                 .append(currentText)
                 .append(" ")
@@ -186,7 +194,14 @@ public final class GameWaitingLobby {
             this.sidebarText.add(text);
         }
     }
-
+    private void showVoteReminder() {
+        PlayerSet participants = this.gameSpace.getPlayers().participants();
+        this.timeSincePlayerVote = this.gameSpace.getTime();
+        MutableText styledText = Text.translatable("text.plasmid.game.waiting_lobby.player_vote_click_here", this.playerVotes.size(), String.format("%.0f", Math.ceil((double) participants.size() / 2)))
+                .styled((style -> style
+                        .withColor(Formatting.BLUE)));
+        participants.sendMessage(Text.translatable("text.plasmid.game.waiting_lobby.player_vote", this.playerConfig.minPlayers(), styledText));
+    }
     private void onTick() {
         if (this.started) {
             return;
@@ -221,12 +236,15 @@ public final class GameWaitingLobby {
                     }
                 }
             }
+        } else if (this.timeSincePlayerVote == -1 || time - this.timeSincePlayerVote >= this.playerConfig.playerVoteTimer()) {
+            this.showVoteReminder();
         }
     }
 
     @Nullable
     private GameResult requestStart() {
-        if (this.gameSpace.getPlayers().participants().size() < this.playerConfig.minPlayers()) {
+        double playersNeededToStart = Math.ceil((double) this.gameSpace.getPlayers().participants().size() / 2);
+        if (this.gameSpace.getPlayers().participants().size() < this.playerConfig.minPlayers() && this.playerVotes.size() < playersNeededToStart) {
             return GameResult.error(GameTexts.Start.notEnoughPlayers());
         }
 
@@ -252,10 +270,25 @@ public final class GameWaitingLobby {
 
     private void onRemovePlayer(ServerPlayerEntity player) {
         this.updateCountdown();
+        if (this.playerVotes.remove(player)) {
+            this.showVoteReminder();
+        }
     }
 
     private void onBuildUiLayout(WaitingLobbyUiLayout layout, ServerPlayerEntity player) {
         layout.addTrailing(new LeaveGameWaitingLobbyUiElement(this.gameSpace, player));
+        layout.addTrailing(new ReadyGameWaitingLobbyUiElement(layout, (hasVoted) -> {
+            if (hasVoted) {
+                this.playerVotes.add(player);
+            } else {
+                this.playerVotes.remove(player);
+            }
+            double playersNeededToStart = Math.ceil((double) this.gameSpace.getPlayers().participants().size() / 2);
+            if (playersNeededToStart <= this.playerVotes.size()) {
+                this.updateCountdown();
+            }
+            this.showVoteReminder();
+        }));
     }
 
     private void updateCountdown() {
@@ -288,7 +321,8 @@ public final class GameWaitingLobby {
 
     private long getTargetCountdownDuration() {
         var countdown = this.playerConfig.countdown();
-        if (this.startRequested) {
+        double playersNeededToStart = Math.ceil((double) this.gameSpace.getPlayers().participants().size() / 2);
+        if (this.startRequested || playersNeededToStart <= this.playerVotes.size()) {
             return START_REQUESTED_COUNTDOWN;
         }
 
