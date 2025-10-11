@@ -281,7 +281,7 @@ public final class GameWaitingLobby {
 
     private void onRemovePlayer(ServerPlayerEntity player) {
         this.updateCountdown();
-        if (this.playerVotes.remove(player)) {
+        if (this.playerVotes.remove(player) && this.gameSpace.getPlayers().participants().size() >= this.playerConfig.minPlayers()) {
             this.showVoteReminder();
         }
     }
