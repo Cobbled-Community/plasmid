@@ -6,7 +6,8 @@ import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Identifier;
-import net.minecraft.world.GameRules;
+import net.minecraft.world.rule.GameRule;
+import net.minecraft.world.rule.GameRules;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 import xyz.nucleoid.fantasy.Fantasy;
@@ -85,14 +86,14 @@ public final class ManagedGameSpaceWorlds implements GameSpaceWorlds {
         var rules = worldConfig.getGameRules();
 
         setDefaultRule(rules, GameRules.ANNOUNCE_ADVANCEMENTS, false);
-        setDefaultRule(rules, GameRules.DO_DAYLIGHT_CYCLE, false);
-        setDefaultRule(rules, GameRules.DO_WEATHER_CYCLE, false);
+        setDefaultRule(rules, GameRules.ADVANCE_TIME, false);
+        setDefaultRule(rules, GameRules.ADVANCE_WEATHER, false);
         setDefaultRule(rules, GameRules.KEEP_INVENTORY, false);
         setDefaultRule(rules, GameRules.DO_MOB_SPAWNING, false);
         setDefaultRule(rules, GameRules.LOCATOR_BAR, false);
     }
 
-    private static void setDefaultRule(GameRuleStore rules, GameRules.Key<GameRules.BooleanRule> key, boolean value) {
+    private static <T> void setDefaultRule(GameRuleStore rules, GameRule<T> key, T value) {
         if (!rules.contains(key)) {
             rules.set(key, value);
         }

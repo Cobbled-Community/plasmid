@@ -10,6 +10,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.text.Text;
+import xyz.nucleoid.plasmid.api.util.PlayerUtil;
 
 import java.util.Collections;
 import java.util.Iterator;
@@ -86,7 +87,7 @@ public interface PlayerIterable extends PlayerOps, Iterable<ServerPlayerEntity> 
     @Override
     default void playSound(SoundEvent sound, SoundCategory category, float volume, float pitch) {
         for (var player : this) {
-            player.playSoundToPlayer(sound, category, volume, pitch);
+            PlayerUtil.playSoundToPlayer(player, sound, category, volume, pitch);
         }
     }
 
