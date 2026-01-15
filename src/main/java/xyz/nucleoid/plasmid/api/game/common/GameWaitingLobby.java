@@ -66,7 +66,6 @@ public final class GameWaitingLobby {
     private long countdownStart = -1;
     private long countdownDuration = -1;
 
-    private long timeSincePlayerVote = -1;
     private final ArrayList<ServerPlayerEntity> playerVotes = new ArrayList<>();
     private final HashMap<ServerPlayerEntity, WaitingLobbyUiLayout> playerToLayout = new HashMap<>();
     private boolean startRequested;
@@ -208,11 +207,10 @@ public final class GameWaitingLobby {
             return;
         }
         PlayerSet participants = this.gameSpace.getPlayers().participants();
-        this.timeSincePlayerVote = this.gameSpace.getTime();
         MutableText styledText = Text.translatable("text.plasmid.game.waiting_lobby.player_vote_click_here", this.playerVotes.size(), String.format("%.0f", Math.ceil((double) participants.size() / 2)))
                 .styled((style -> style
                         .withColor(Formatting.BLUE)));
-        participants.sendMessage(Text.translatable("text.plasmid.game.waiting_lobby.player_vote", this.playerConfig.minPlayers(), styledText));
+        participants.sendActionBar(Text.translatable("text.plasmid.game.waiting_lobby.player_vote", this.playerConfig.minPlayers(), styledText));
     }
     private void onTick() {
         if (this.started) {
@@ -248,7 +246,7 @@ public final class GameWaitingLobby {
                     }
                 }
             }
-        } else if (this.gameSpace.getPlayers().participants().size() >= this.playerConfig.minPlayers() && (this.timeSincePlayerVote == -1 || time - this.timeSincePlayerVote >= this.playerConfig.playerVoteTimer())) {
+        } else if (this.gameSpace.getPlayers().participants().size() >= this.playerConfig.minPlayers()) {
             this.showVoteReminder();
         }
     }
