@@ -45,7 +45,7 @@ public record GameConfig<C>(
             return DIRECT_CODEC;
         }
 
-        return Codec.withAlternative(DIRECT_CODEC, Codec.unit(() -> new GameConfig<>(
+        return Codec.withAlternative(DIRECT_CODEC, MapCodec.unitCodec(() -> new GameConfig<>(
                 GameTypes.INVALID,
                 null,
                 null,

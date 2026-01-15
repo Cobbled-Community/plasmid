@@ -21,7 +21,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
-import net.minecraft.world.GameRules;
+import net.minecraft.world.rule.GameRules;
 import xyz.nucleoid.fantasy.RuntimeWorldConfig;
 import xyz.nucleoid.map_templates.BlockBounds;
 import xyz.nucleoid.map_templates.MapEntity;
@@ -103,7 +103,7 @@ public final class TestGame {
             activity.allow(GameRuleType.INTERACTION);
 
             activity.listen(BlockUseEvent.EVENT, (player, hand, hitResult) -> {
-                var state = player.getWorld().getBlockState(hitResult.getBlockPos());
+                var state = player.getEntityWorld().getBlockState(hitResult.getBlockPos());
 
                 if (state == BUTTON) {
                     // These should be mutually exclusive

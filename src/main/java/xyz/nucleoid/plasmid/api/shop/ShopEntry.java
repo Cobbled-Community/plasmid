@@ -17,6 +17,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import xyz.nucleoid.plasmid.api.util.ItemStackBuilder;
+import xyz.nucleoid.plasmid.api.util.PlayerUtil;
 
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
@@ -175,7 +176,7 @@ public final class ShopEntry implements GuiElementInterface {
                 sound = SoundEvents.ENTITY_VILLAGER_NO;
             }
 
-            gui.getPlayer().playSoundToPlayer(sound, SoundCategory.MASTER, 1.0F, 1.0F);
+            PlayerUtil.playSoundToPlayer(gui.getPlayer(), sound, SoundCategory.UI, 1.0F, 1.0F);
         };
     }
 }
