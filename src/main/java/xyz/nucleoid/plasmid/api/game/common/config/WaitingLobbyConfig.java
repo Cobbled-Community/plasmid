@@ -44,7 +44,7 @@ public record WaitingLobbyConfig(PlayerLimiterConfig playerConfig, int minPlayer
         this(playerConfig, min, threshold, 2 * SharedConstants.TICKS_PER_MINUTE, countdown);
     }
     public record Countdown(int readySeconds, int fullSeconds) {
-        public static final Countdown DEFAULT = new Countdown(30, 5);
+        public static final Countdown DEFAULT = new Countdown(60, 30);
 
         public static final Codec<Countdown> CODEC = RecordCodecBuilder.create(instance -> {
             return instance.group(
