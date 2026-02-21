@@ -5,6 +5,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import xyz.nucleoid.plasmid.api.event.GameEvents;
 import xyz.nucleoid.plasmid.api.game.*;
+import xyz.nucleoid.plasmid.api.util.PlayerRef;
 import xyz.nucleoid.plasmid.impl.Plasmid;
 
 import java.util.Collection;
@@ -34,6 +35,19 @@ public final class GamePlayerJoiner {
     }
 
     private static GameResult tryJoinAll(Collection<ServerPlayerEntity> players, GameSpace gameSpace, JoinIntent intent) {
+        boolean playersInWhitelist = true;
+        if (!gameSpace.getWhitelist().isEmpty()) {
+            for (ServerPlayerEntity player : players) {
+                if (!gameSpace.isPlayerInWhitelist(PlayerRef.of(player))) {
+                    playersInWhitelist = false;
+                    break;
+                }
+            }
+        }
+
+        if (!playersInWhitelist) {
+            return GameResult.error(Text.translatable("text.plasmid.game.join.party.error.private"));
+        }
         return gameSpace.getPlayers().offer(players, intent);
     }
 
